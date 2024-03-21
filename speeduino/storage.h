@@ -130,7 +130,7 @@ void writeCalibration(void);
 void writeCalibrationPage(uint8_t pageNum);
 void resetConfigPages(void);
 
-//These are utility functions that prevent other files from having to use EEPROM.h directly
+// These are utility functions that prevent other files from having to use EEPROM.h directly
 byte readLastBaro(void);
 void storeLastBaro(byte newValue);
 uint8_t readEEPROMVersion(void);
@@ -144,58 +144,59 @@ bool isEepromWritePending(void);
 
 extern uint32_t deferEEPROMWritesUntil;
 
-#define EEPROM_CONFIG1_MAP    3
-#define EEPROM_CONFIG2_START  291
-#define EEPROM_CONFIG2_END    419
-#define EEPROM_CONFIG3_MAP    421
-#define EEPROM_CONFIG4_START  709
-#define EEPROM_CONFIG4_END    837
-#define EEPROM_CONFIG5_MAP    839
-#define EEPROM_CONFIG6_START  1127
-#define EEPROM_CONFIG6_END    1255
-#define EEPROM_CONFIG7_MAP1   1257
-#define EEPROM_CONFIG7_MAP2   1339
-#define EEPROM_CONFIG7_MAP3   1421
-#define EEPROM_CONFIG7_END    1501
-#define EEPROM_CONFIG8_MAP1   1503
-#define EEPROM_CONFIG8_MAP2   1553
-#define EEPROM_CONFIG8_MAP3   1603
-#define EEPROM_CONFIG8_MAP4   1653
-#define EEPROM_CONFIG9_START  1710
-#define EEPROM_CONFIG9_END    1902
+#define EEPROM_CONFIG1_MAP 3
+#define EEPROM_CONFIG2_START 291
+#define EEPROM_CONFIG2_END 419
+#define EEPROM_CONFIG3_MAP 421
+#define EEPROM_CONFIG4_START 709
+#define EEPROM_CONFIG4_END 837
+#define EEPROM_CONFIG5_MAP 839
+#define EEPROM_CONFIG6_START 1127
+#define EEPROM_CONFIG6_END 1255
+#define EEPROM_CONFIG7_MAP1 1257
+#define EEPROM_CONFIG7_MAP2 1339
+#define EEPROM_CONFIG7_MAP3 1421
+#define EEPROM_CONFIG7_END 1501
+#define EEPROM_CONFIG8_MAP1 1503
+#define EEPROM_CONFIG8_MAP2 1553
+#define EEPROM_CONFIG8_MAP3 1603
+#define EEPROM_CONFIG8_MAP4 1653
+#define EEPROM_CONFIG9_START 1710
+#define EEPROM_CONFIG9_END 1902
 #define EEPROM_CONFIG10_START 1902
-#define EEPROM_CONFIG10_END   2094
-#define EEPROM_CONFIG11_MAP   2096
-#define EEPROM_CONFIG11_END   2385
-#define EEPROM_CONFIG12_MAP   2387
-#define EEPROM_CONFIG12_MAP2  2469
-#define EEPROM_CONFIG12_MAP3  2551
-#define EEPROM_CONFIG12_END   2575
+#define EEPROM_CONFIG10_END 2094
+#define EEPROM_CONFIG11_MAP 2096
+#define EEPROM_CONFIG11_END 2385
+#define EEPROM_CONFIG12_MAP 2387
+#define EEPROM_CONFIG12_MAP2 2469
+#define EEPROM_CONFIG12_MAP3 2551
+#define EEPROM_CONFIG12_END 2575
 #define EEPROM_CONFIG13_START 2580
-#define EEPROM_CONFIG13_END   2708
-#define EEPROM_CONFIG14_MAP   2710
-#define EEPROM_CONFIG14_END   2998
-//This is OUT OF ORDER as Page 8 was expanded to add fuel trim tables 5-8. The EEPROM for them is simply added here so as not to impact existing tunes
-#define EEPROM_CONFIG8_MAP5   3001
-#define EEPROM_CONFIG8_MAP6   3051
-#define EEPROM_CONFIG8_MAP7   3101
-#define EEPROM_CONFIG8_MAP8   3151
+#define EEPROM_CONFIG13_END 2708
+#define EEPROM_CONFIG14_MAP 2710
+#define EEPROM_CONFIG14_END 2998
+// This is OUT OF ORDER as Page 8 was expanded to add fuel trim tables 5-8. The EEPROM for them is simply added here so
+// as not to impact existing tunes
+#define EEPROM_CONFIG8_MAP5 3001
+#define EEPROM_CONFIG8_MAP6 3051
+#define EEPROM_CONFIG8_MAP7 3101
+#define EEPROM_CONFIG8_MAP8 3151
 
-//Page 15 added after OUT OF ORDER page 8
-#define EEPROM_CONFIG15_MAP   3199
+// Page 15 added after OUT OF ORDER page 8
+#define EEPROM_CONFIG15_MAP 3199
 #define EEPROM_CONFIG15_START 3281
-#define EEPROM_CONFIG15_END   3457
+#define EEPROM_CONFIG15_END 3457
 
+#define EEPROM_CALIBRATION_CLT_CRC 3674
+#define EEPROM_CALIBRATION_IAT_CRC 3678
+#define EEPROM_CALIBRATION_O2_CRC 3682
 
-#define EEPROM_CALIBRATION_CLT_CRC  3674
-#define EEPROM_CALIBRATION_IAT_CRC  3678
-#define EEPROM_CALIBRATION_O2_CRC   3682
+// These were the values used previously when all calibration tables were 512 long. They need to be retained so the
+// update process (202005 -> 202008) can work
+#define EEPROM_CALIBRATION_O2_OLD 2559
+#define EEPROM_CALIBRATION_IAT_OLD 3071
+#define EEPROM_CALIBRATION_CLT_OLD 3583
 
-//These were the values used previously when all calibration tables were 512 long. They need to be retained so the update process (202005 -> 202008) can work
-#define EEPROM_CALIBRATION_O2_OLD   2559
-#define EEPROM_CALIBRATION_IAT_OLD  3071
-#define EEPROM_CALIBRATION_CLT_OLD  3583
+#define EEPROM_DEFER_DELAY MICROS_PER_SEC  // 1.0 second pause after large comms before writing to EEPROM
 
-#define EEPROM_DEFER_DELAY          MICROS_PER_SEC //1.0 second pause after large comms before writing to EEPROM
-
-#endif // STORAGE_H
+#endif  // STORAGE_H

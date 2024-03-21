@@ -1,6 +1,6 @@
 #if defined(CORE_SAME51)
-#include "globals.h"
 #include "auxiliaries.h"
+#include "globals.h"
 
 void initBoard()
 {
@@ -30,10 +30,7 @@ void initBoard()
     */
 }
 
-uint16_t freeRam()
-{
-  return 0;
-}
+uint16_t freeRam() { return 0; }
 
 void doSystemReset() { return; }
 void jumpToBootloader() { return; }

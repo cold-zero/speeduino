@@ -2,7 +2,8 @@
 
 int ignition1StartAngle;
 int ignition1EndAngle;
-int channel1IgnDegrees; /**< The number of crank degrees until cylinder 1 is at TDC (This is obviously 0 for virtually ALL engines, but there's some weird ones) */
+int channel1IgnDegrees; /**< The number of crank degrees until cylinder 1 is at TDC (This is obviously 0 for virtually
+                           ALL engines, but there's some weird ones) */
 
 int ignition2StartAngle;
 int ignition2EndAngle;
@@ -37,7 +38,8 @@ int ignition8EndAngle;
 int channel8IgnDegrees; /**< The number of crank degrees until cylinder 2 (and 5/6/7/8) is at TDC */
 #endif
 
-int channel1InjDegrees; /**< The number of crank degrees until cylinder 1 is at TDC (This is obviously 0 for virtually ALL engines, but there's some weird ones) */
+int channel1InjDegrees; /**< The number of crank degrees until cylinder 1 is at TDC (This is obviously 0 for virtually
+                           ALL engines, but there's some weird ones) */
 int channel2InjDegrees; /**< The number of crank degrees until cylinder 2 (and 5/6/7/8) is at TDC */
 int channel3InjDegrees; /**< The number of crank degrees until cylinder 3 (and 5/6/7/8) is at TDC */
 int channel4InjDegrees; /**< The number of crank degrees until cylinder 4 (and 5/6/7/8) is at TDC */
@@ -53,5 +55,3 @@ int channel7InjDegrees; /**< The number of crank degrees until cylinder 7 is at 
 #if (INJ_CHANNELS >= 8)
 int channel8InjDegrees; /**< The number of crank degrees until cylinder 8 is at TDC */
 #endif
-
-

@@ -2,7 +2,8 @@
 Injector and Ignition (on/off) scheduling (structs).
 
 This scheduler is designed to maintain 2 schedules for use by the fuel and ignition systems.
-It functions by waiting for the overflow vectors from each of the timers in use to overflow, which triggers an interrupt.
+It functions by waiting for the overflow vectors from each of the timers in use to overflow, which triggers an
+interrupt.
 
 ## Technical
 
@@ -19,10 +20,10 @@ This means that the precision of the scheduler is:
 
 ## Features
 
-This differs from most other schedulers in that its calls are non-recurring (ie when you schedule an event at a certain time and once it has occurred,
-it will not reoccur unless you explicitly ask/re-register for it).
-Each timer can have only 1 callback associated with it at any given time. If you call the setCallback function a 2nd time,
-the original schedule will be overwritten and not occur.
+This differs from most other schedulers in that its calls are non-recurring (ie when you schedule an event at a certain
+time and once it has occurred, it will not reoccur unless you explicitly ask/re-register for it). Each timer can have
+only 1 callback associated with it at any given time. If you call the setCallback function a 2nd time, the original
+schedule will be overwritten and not occur.
 
 ## Timer identification
 
@@ -44,10 +45,13 @@ See page 136 of the processors datasheet: http://www.atmel.com/Images/doc2549.pd
 #include "globals.h"
 
 #define USE_IGN_REFRESH
-#define IGNITION_REFRESH_THRESHOLD  30 //Time in uS that the refresh functions will check to ensure there is enough time before changing the end compare
+#define IGNITION_REFRESH_THRESHOLD \
+    30  // Time in uS that the refresh functions will check to ensure there is enough time before changing the end
+        // compare
 
 #define DWELL_AVERAGE_ALPHA 30
-#define DWELL_AVERAGE(input) (((long)input * (256 - DWELL_AVERAGE_ALPHA) + ((long)currentStatus.actualDwell * DWELL_AVERAGE_ALPHA))) >> 8
+#define DWELL_AVERAGE(input) \
+    (((long)input * (256 - DWELL_AVERAGE_ALPHA) + ((long)currentStatus.actualDwell * DWELL_AVERAGE_ALPHA))) >> 8
 //#define DWELL_AVERAGE(input) (currentStatus.dwell) //Can be use to disable the above for testing
 
 void initialiseSchedulers(void);
@@ -58,47 +62,47 @@ void disablePendingIgnSchedule(byte channel);
 
 void refreshIgnitionSchedule1(unsigned long timeToEnd);
 
-//The ARM cores use separate functions for their ISRs
+// The ARM cores use separate functions for their ISRs
 #if defined(ARDUINO_ARCH_STM32) || defined(CORE_TEENSY)
-  void fuelSchedule1Interrupt(void);
-  void fuelSchedule2Interrupt(void);
-  void fuelSchedule3Interrupt(void);
-  void fuelSchedule4Interrupt(void);
+void fuelSchedule1Interrupt(void);
+void fuelSchedule2Interrupt(void);
+void fuelSchedule3Interrupt(void);
+void fuelSchedule4Interrupt(void);
 #if (INJ_CHANNELS >= 5)
-  void fuelSchedule5Interrupt(void);
+void fuelSchedule5Interrupt(void);
 #endif
 #if (INJ_CHANNELS >= 6)
-  void fuelSchedule6Interrupt(void);
+void fuelSchedule6Interrupt(void);
 #endif
 #if (INJ_CHANNELS >= 7)
-  void fuelSchedule7Interrupt(void);
+void fuelSchedule7Interrupt(void);
 #endif
 #if (INJ_CHANNELS >= 8)
-  void fuelSchedule8Interrupt(void);
+void fuelSchedule8Interrupt(void);
 #endif
 #if (IGN_CHANNELS >= 1)
-  void ignitionSchedule1Interrupt(void);
+void ignitionSchedule1Interrupt(void);
 #endif
 #if (IGN_CHANNELS >= 2)
-  void ignitionSchedule2Interrupt(void);
+void ignitionSchedule2Interrupt(void);
 #endif
 #if (IGN_CHANNELS >= 3)
-  void ignitionSchedule3Interrupt(void);
+void ignitionSchedule3Interrupt(void);
 #endif
 #if (IGN_CHANNELS >= 4)
-  void ignitionSchedule4Interrupt(void);
+void ignitionSchedule4Interrupt(void);
 #endif
 #if (IGN_CHANNELS >= 5)
-  void ignitionSchedule5Interrupt(void);
+void ignitionSchedule5Interrupt(void);
 #endif
 #if (IGN_CHANNELS >= 6)
-  void ignitionSchedule6Interrupt(void);
+void ignitionSchedule6Interrupt(void);
 #endif
 #if (IGN_CHANNELS >= 7)
-  void ignitionSchedule7Interrupt(void);
+void ignitionSchedule7Interrupt(void);
 #endif
 #if (IGN_CHANNELS >= 8)
-  void ignitionSchedule8Interrupt(void);
+void ignitionSchedule8Interrupt(void);
 #endif
 #endif
 /** Schedule statuses.
@@ -107,109 +111,115 @@ void refreshIgnitionSchedule1(unsigned long timeToEnd);
  * - STAGED - (???, Not used)
  * - RUNNING - Schedule is currently running
  */
-enum ScheduleStatus {OFF, PENDING, STAGED, RUNNING}; //The statuses that a schedule can have
+enum ScheduleStatus
+{
+    OFF,
+    PENDING,
+    STAGED,
+    RUNNING
+};  // The statuses that a schedule can have
 
 /** Ignition schedule.
  */
-struct IgnitionSchedule {
+struct IgnitionSchedule
+{
+    // Deduce the real types of the counter and compare registers.
+    // COMPARE_TYPE is NOT the same - it's just an integer type wide enough to
+    // store 16-bit counter/compare calculation results.
+    using counter_t = decltype(IGN1_COUNTER);
+    using compare_t = decltype(IGN1_COMPARE);
 
-  // Deduce the real types of the counter and compare registers.
-  // COMPARE_TYPE is NOT the same - it's just an integer type wide enough to
-  // store 16-bit counter/compare calculation results.
-  using counter_t = decltype(IGN1_COUNTER);
-  using compare_t = decltype(IGN1_COMPARE);
+    IgnitionSchedule(counter_t &counter, compare_t &compare, void (&_pTimerDisable)(), void (&_pTimerEnable)())
+        : counter(counter), compare(compare), pTimerDisable(_pTimerDisable), pTimerEnable(_pTimerEnable)
+    {
+    }
 
-  IgnitionSchedule( counter_t &counter, compare_t &compare,
-            void (&_pTimerDisable)(), void (&_pTimerEnable)())
-  : counter(counter)
-  , compare(compare)
-  , pTimerDisable(_pTimerDisable)
-  , pTimerEnable(_pTimerEnable)
-  {
-  }
+    volatile unsigned long duration;     ///< Scheduled duration (uS ?)
+    volatile ScheduleStatus Status;      ///< Schedule status: OFF, PENDING, STAGED, RUNNING
+    void (*pStartCallback)(void);        ///< Start Callback function for schedule
+    void (*pEndCallback)(void);          ///< End Callback function for schedule
+    volatile unsigned long startTime;    /**< The system time (in uS) that the schedule started, used by the overdwell
+                                            protection in timers.ino */
+    volatile COMPARE_TYPE startCompare;  ///< The counter value of the timer when this will start
+    volatile COMPARE_TYPE endCompare;    ///< The counter value of the timer when this will end
 
-  volatile unsigned long duration;///< Scheduled duration (uS ?)
-  volatile ScheduleStatus Status; ///< Schedule status: OFF, PENDING, STAGED, RUNNING
-  void (*pStartCallback)(void);        ///< Start Callback function for schedule
-  void (*pEndCallback)(void);          ///< End Callback function for schedule
-  volatile unsigned long startTime; /**< The system time (in uS) that the schedule started, used by the overdwell protection in timers.ino */
-  volatile COMPARE_TYPE startCompare; ///< The counter value of the timer when this will start
-  volatile COMPARE_TYPE endCompare;   ///< The counter value of the timer when this will end
+    COMPARE_TYPE nextStartCompare;  ///< Planned start of next schedule (when current schedule is RUNNING)
+    COMPARE_TYPE nextEndCompare;    ///< Planned end of next schedule (when current schedule is RUNNING)
+    volatile bool hasNextSchedule =
+        false;  ///< Enable flag for planned next schedule (when current schedule is RUNNING)
+    volatile bool endScheduleSetByDecoder = false;
 
-  COMPARE_TYPE nextStartCompare;      ///< Planned start of next schedule (when current schedule is RUNNING)
-  COMPARE_TYPE nextEndCompare;        ///< Planned end of next schedule (when current schedule is RUNNING)
-  volatile bool hasNextSchedule = false; ///< Enable flag for planned next schedule (when current schedule is RUNNING)
-  volatile bool endScheduleSetByDecoder = false;
-
-  counter_t &counter;  // Reference to the counter register. E.g. TCNT3
-  compare_t &compare;  // Reference to the compare register. E.g. OCR3A
-  void (&pTimerDisable)();    // Reference to the timer disable function
-  void (&pTimerEnable)();     // Reference to the timer enable function  
+    counter_t &counter;       // Reference to the counter register. E.g. TCNT3
+    compare_t &compare;       // Reference to the compare register. E.g. OCR3A
+    void (&pTimerDisable)();  // Reference to the timer disable function
+    void (&pTimerEnable)();   // Reference to the timer enable function
 };
 
 void _setIgnitionScheduleRunning(IgnitionSchedule &schedule, unsigned long timeout, unsigned long duration);
 void _setIgnitionScheduleNext(IgnitionSchedule &schedule, unsigned long timeout, unsigned long duration);
 
-inline __attribute__((always_inline)) void setIgnitionSchedule(IgnitionSchedule &schedule, unsigned long timeout, unsigned long duration) {
-  if(schedule.Status != RUNNING) { //Check that we're not already part way through a schedule
-    _setIgnitionScheduleRunning(schedule, timeout, duration);
-  }
-  // Check whether timeout exceeds the maximum future time. This can potentially occur on sequential setups when below ~115rpm
-  else if(timeout < MAX_TIMER_PERIOD){
-    _setIgnitionScheduleNext(schedule, timeout, duration);
-  }
+inline __attribute__((always_inline)) void setIgnitionSchedule(IgnitionSchedule &schedule, unsigned long timeout,
+                                                               unsigned long duration)
+{
+    if (schedule.Status != RUNNING)
+        {  // Check that we're not already part way through a schedule
+            _setIgnitionScheduleRunning(schedule, timeout, duration);
+        }
+    // Check whether timeout exceeds the maximum future time. This can potentially occur on sequential setups when below
+    // ~115rpm
+    else if (timeout < MAX_TIMER_PERIOD)
+        {
+            _setIgnitionScheduleNext(schedule, timeout, duration);
+        }
 }
 
 /** Fuel injection schedule.
-* Fuel schedules don't use the callback pointers, or the startTime/endScheduleSetByDecoder variables.
-* They are removed in this struct to save RAM.
-*/
-struct FuelSchedule {
+ * Fuel schedules don't use the callback pointers, or the startTime/endScheduleSetByDecoder variables.
+ * They are removed in this struct to save RAM.
+ */
+struct FuelSchedule
+{
+    // Deduce the real types of the counter and compare registers.
+    // COMPARE_TYPE is NOT the same - it's just an integer type wide enough to
+    // store 16-bit counter/compare calculation results.
+    using counter_t = decltype(FUEL1_COUNTER);
+    using compare_t = decltype(FUEL1_COMPARE);
 
-  // Deduce the real types of the counter and compare registers.
-  // COMPARE_TYPE is NOT the same - it's just an integer type wide enough to
-  // store 16-bit counter/compare calculation results.
-  using counter_t = decltype(FUEL1_COUNTER);
-  using compare_t = decltype(FUEL1_COMPARE);
+    FuelSchedule(counter_t &counter, compare_t &compare, void (&_pTimerDisable)(), void (&_pTimerEnable)())
+        : counter(counter), compare(compare), pTimerDisable(_pTimerDisable), pTimerEnable(_pTimerEnable)
+    {
+    }
 
-  FuelSchedule( counter_t &counter, compare_t &compare,
-            void (&_pTimerDisable)(), void (&_pTimerEnable)())
-  : counter(counter)
-  , compare(compare)
-  , pTimerDisable(_pTimerDisable)
-  , pTimerEnable(_pTimerEnable)
-  {
-  }
+    volatile unsigned long duration;     ///< Scheduled duration (uS ?)
+    volatile ScheduleStatus Status;      ///< Schedule status: OFF, PENDING, STAGED, RUNNING
+    volatile COMPARE_TYPE startCompare;  ///< The counter value of the timer when this will start
+    volatile COMPARE_TYPE endCompare;    ///< The counter value of the timer when this will end
+    void (*pStartFunction)(void);
+    void (*pEndFunction)(void);
+    COMPARE_TYPE nextStartCompare;
+    COMPARE_TYPE nextEndCompare;
+    volatile bool hasNextSchedule = false;
 
-  volatile unsigned long duration;///< Scheduled duration (uS ?)
-  volatile ScheduleStatus Status; ///< Schedule status: OFF, PENDING, STAGED, RUNNING
-  volatile COMPARE_TYPE startCompare; ///< The counter value of the timer when this will start
-  volatile COMPARE_TYPE endCompare;   ///< The counter value of the timer when this will end
-  void (*pStartFunction)(void);
-  void (*pEndFunction)(void);  
-  COMPARE_TYPE nextStartCompare;
-  COMPARE_TYPE nextEndCompare;
-  volatile bool hasNextSchedule = false;
-
-  counter_t &counter;  // Reference to the counter register. E.g. TCNT3
-  compare_t &compare;  // Reference to the compare register. E.g. OCR3A
-  void (&pTimerDisable)();    // Reference to the timer disable function
-  void (&pTimerEnable)();     // Reference to the timer enable function  
+    counter_t &counter;       // Reference to the counter register. E.g. TCNT3
+    compare_t &compare;       // Reference to the compare register. E.g. OCR3A
+    void (&pTimerDisable)();  // Reference to the timer disable function
+    void (&pTimerEnable)();   // Reference to the timer enable function
 };
 
 void _setFuelScheduleRunning(FuelSchedule &schedule, unsigned long timeout, unsigned long duration);
 void _setFuelScheduleNext(FuelSchedule &schedule, unsigned long timeout, unsigned long duration);
 
-inline __attribute__((always_inline)) void setFuelSchedule(FuelSchedule &schedule, unsigned long timeout, unsigned long duration) 
+inline __attribute__((always_inline)) void setFuelSchedule(FuelSchedule &schedule, unsigned long timeout,
+                                                           unsigned long duration)
 {
-  if(schedule.Status != RUNNING) 
-  { //Check that we're not already part way through a schedule
-    _setFuelScheduleRunning(schedule, timeout, duration);
-  }
-  else if(timeout < MAX_TIMER_PERIOD) 
-  {
-    _setFuelScheduleNext(schedule, timeout, duration);
-  }
+    if (schedule.Status != RUNNING)
+        {  // Check that we're not already part way through a schedule
+            _setFuelScheduleRunning(schedule, timeout, duration);
+        }
+    else if (timeout < MAX_TIMER_PERIOD)
+        {
+            _setFuelScheduleNext(schedule, timeout, duration);
+        }
 }
 
 extern FuelSchedule fuelSchedule1;
@@ -244,4 +254,4 @@ extern IgnitionSchedule ignitionSchedule7;
 extern IgnitionSchedule ignitionSchedule8;
 #endif
 
-#endif // SCHEDULER_H
+#endif  // SCHEDULER_H

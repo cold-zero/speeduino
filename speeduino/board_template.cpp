@@ -1,7 +1,6 @@
 #include "globals.h"
 #if defined(CORE_TEMPLATE)
 
-
 void initBoard()
 {
     /*
@@ -30,10 +29,7 @@ void initBoard()
     */
 }
 
-uint16_t freeRam()
-{
-
-}
+uint16_t freeRam() {}
 
 void doSystemReset() { return; }
 void jumpToBootloader() { return; }
