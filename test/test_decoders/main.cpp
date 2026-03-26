@@ -24,6 +24,7 @@ void runAllDecoderTests(void)
     extern void testToothLoggers(void);
     extern void testDecoderBuilder(void);
     extern void testDecoderInit(void);
+    extern void testThirtySixMinus21(void);
     
     testMissingTooth();
     testDualWheel();
@@ -37,6 +38,7 @@ void runAllDecoderTests(void)
     testToothLoggers();
     testDecoderBuilder();
     testDecoderInit();
+    testThirtySixMinus21();
 }
 
 TEST_HARNESS(runAllDecoderTests)
